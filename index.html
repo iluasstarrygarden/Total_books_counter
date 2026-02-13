@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Total Books</title>
+<style>
+  body {
+    margin: 0;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .panel {
+    width: 250px;
+    height: 500px;
+    background: #F4E6D8;
+    border-radius: 28px;
+    border: 1px solid #E6D3C3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+  }
+
+  .number {
+    font-family: Georgia, serif;
+    font-size: 160px;
+    color: #C29563;
+    font-weight: bold;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <div class="number" id="counter">0</div>
+</div>
+
+<script>
+  const totalBooks = 18; // update later dynamically
+  const counter = document.getElementById("counter");
+
+  let current = 0;
+  const interval = setInterval(() => {
+    current++;
+    counter.textContent = current;
+    if (current >= totalBooks) clearInterval(interval);
+  }, 50);
+</script>
+
+</body>
+</html>
