@@ -11,31 +11,31 @@ export default async function handler(req, res) {
     let hasMore = true;
     let startCursor = undefined;
 
-    // ✅ PUT YOUR EXACT STATUS OPTION NAME(S) HERE
-    const FINISHED_OPTIONS = ["📘", "📘✨"];
-
     while (hasMore) {
       const body = {
         page_size: 100,
         filter: {
-          or: FINISHED_OPTIONS.map(name => ({
-            property: "Status",
-            select: { equals: name } // if Status is Select
-          }))
+          property: "Status",
+          status: {
+            equals: "Finished"
+          }
         }
       };
 
       if (startCursor) body.start_cursor = startCursor;
 
-      const resp = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${NOTION_TOKEN}`,
-          "Notion-Version": "2022-06-28",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
+      const resp = await fetch(
+        `https://api.notion.com/v1/databases/${DATABASE_ID}/query`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${NOTION_TOKEN}`,
+            "Notion-Version": "2022-06-28",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        }
+      );
 
       const data = await resp.json();
       if (!resp.ok) return res.status(resp.status).json(data);
@@ -45,6 +45,7 @@ export default async function handler(req, res) {
       startCursor = data.next_cursor;
     }
 
+    // Cache at Vercel edge (fast), refreshes automatically
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     return res.status(200).json({ count });
   } catch (err) {
