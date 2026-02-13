@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     let startCursor = undefined;
 
     // ✅ PUT YOUR EXACT STATUS OPTION NAME(S) HERE
-    const FINISHED_OPTIONS = ["📘 Finished", "📘✨ Finished (ARC)"];
+    const FINISHED_OPTIONS = ["📘", "📘✨"];
 
     while (hasMore) {
       const body = {
