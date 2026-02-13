@@ -1,96 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Total Books</title>
-<style>
-  body {
-    margin: 0;
-    background: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+  <meta charset="UTF-8" />
+  <title>Total Books</title>
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-  .panel {
-    width: 200px;
-    height: 250px;
-    background: #F4E6D8;
-    border-radius: 28px;
-    border: 1px solid #E6D3C3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.05);
-  }
+    .panel {
+      width: 200px;
+      height: 250px;
+      background: #F4E6D8;
+      border-radius: 28px;
+      border: 1px solid #E6D3C3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+      gap: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
 
-  .number {
-    font-family: Georgia, serif;
-    font-size: 125px;
-    color: #C29563;
-    font-weight: bold;
-    line-height: 1;
-  }
-</style>
+    .number {
+      font-family: Georgia, serif;
+      font-size: 125px;
+      color: #C29563;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .hint {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-size: 11px;
+      color: rgba(60, 40, 20, 0.55);
+      text-align: center;
+      line-height: 1.2;
+      display: none; /* only show if error */
+    }
+  </style>
 </head>
+
 <body>
+  <div class="panel">
+    <div class="number" id="counter">0</div>
+    <div class="hint" id="hint"></div>
+  </div>
 
-<div class="panel">
-  <div class="number" id="counter">0</div>
-</div>
-
-<script>
-  async function getLiveCount() {
-    const res = await fetch("/api/count");
-    const data = await res.json();
-    return data.count ?? 0;
-  }
-
-  async function animateCounter() {
-    const totalBooks = await getLiveCount();
-    const counter = document.getElementById("counter");
-
-    let current = 0;
-    const step = Math.max(1, Math.ceil(totalBooks / 60)); // smooth even for big numbers
-
-    const interval = setInterval(() => {
-      current += step;
-      if (current >= totalBooks) {
-        current = totalBooks;
-        clearInterval(interval);
+  <script>
+    async function getLiveCount() {
+      // cache-bust so you always see the newest response while debugging
+      const res = await fetch("/api/count?t=" + Date.now());
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`API ${res.status}: ${text}`);
       }
-      counter.textContent = current;
-    }, 30);
-  }
+      const data = await res.json();
+      return data.count ?? 0;
+    }
 
-  animateCounter();
-<script>
-  async function getLiveCount() {
-    const res = await fetch("/api/count");
-    const data = await res.json();
-    return data.count ?? 0;
-  }
+    async function animateCounter() {
+      const counter = document.getElementById("counter");
+      const hint = document.getElementById("hint");
 
-  async function animateCounter() {
-    const totalBooks = await getLiveCount();
-    const counter = document.getElementById("counter");
+      try {
+        const totalBooks = await getLiveCount();
 
-    let current = 0;
-    const step = Math.max(1, Math.ceil(totalBooks / 60));
+        let current = 0;
+        const step = Math.max(1, Math.ceil(totalBooks / 60));
 
-    const interval = setInterval(() => {
-      current += step;
-      if (current >= totalBooks) {
-        current = totalBooks;
-        clearInterval(interval);
+        const interval = setInterval(() => {
+          current += step;
+          if (current >= totalBooks) {
+            current = totalBooks;
+            clearInterval(interval);
+          }
+          counter.textContent = current;
+        }, 30);
+      } catch (err) {
+        // show a tiny debug note on the card
+        hint.style.display = "block";
+        hint.textContent = String(err).slice(0, 180);
+        console.error(err);
       }
-        counter.textContent = current;
-    }, 30);
-  }
+    }
 
     animateCounter();
-</script>
-
+  </script>
 </body>
 </html>
