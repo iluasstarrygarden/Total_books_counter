@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         page_size: 100,
         filter: {
           property: "Status",
-          status: {
+          select: {
             equals: "Finished"
           }
         }
@@ -40,12 +40,11 @@ export default async function handler(req, res) {
       const data = await resp.json();
       if (!resp.ok) return res.status(resp.status).json(data);
 
-      count += (data.results?.length || 0);
+      count += data.results?.length || 0;
       hasMore = data.has_more;
       startCursor = data.next_cursor;
     }
 
-    // Cache at Vercel edge (fast), refreshes automatically
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     return res.status(200).json({ count });
   } catch (err) {
