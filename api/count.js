@@ -11,14 +11,17 @@ export default async function handler(req, res) {
     let hasMore = true;
     let startCursor = undefined;
 
+    // ✅ PUT YOUR EXACT STATUS OPTION NAME(S) HERE
+    const FINISHED_OPTIONS = ["📘 Finished", "📘✨ Finished (ARC)"];
+
     while (hasMore) {
       const body = {
         page_size: 100,
         filter: {
-          property: "Status",
-          select: {
-            contains: "Finished" // works if your select option includes the word Finished
-          }
+          or: FINISHED_OPTIONS.map(name => ({
+            property: "Status",
+            select: { equals: name } // if Status is Select
+          }))
         }
       };
 
