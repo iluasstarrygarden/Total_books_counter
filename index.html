@@ -41,15 +41,55 @@
 </div>
 
 <script>
-  const totalBooks = 18; // update later dynamically
-  const counter = document.getElementById("counter");
+  async function getLiveCount() {
+    const res = await fetch("/api/count");
+    const data = await res.json();
+    return data.count ?? 0;
+  }
 
-  let current = 0;
-  const interval = setInterval(() => {
-    current++;
-    counter.textContent = current;
-    if (current >= totalBooks) clearInterval(interval);
-  }, 50);
+  async function animateCounter() {
+    const totalBooks = await getLiveCount();
+    const counter = document.getElementById("counter");
+
+    let current = 0;
+    const step = Math.max(1, Math.ceil(totalBooks / 60)); // smooth even for big numbers
+
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= totalBooks) {
+        current = totalBooks;
+        clearInterval(interval);
+      }
+      counter.textContent = current;
+    }, 30);
+  }
+
+  animateCounter();
+<script>
+  async function getLiveCount() {
+    const res = await fetch("/api/count");
+    const data = await res.json();
+    return data.count ?? 0;
+  }
+
+  async function animateCounter() {
+    const totalBooks = await getLiveCount();
+    const counter = document.getElementById("counter");
+
+    let current = 0;
+    const step = Math.max(1, Math.ceil(totalBooks / 60));
+
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= totalBooks) {
+        current = totalBooks;
+        clearInterval(interval);
+      }
+        counter.textContent = current;
+    }, 30);
+  }
+
+    animateCounter();
 </script>
 
 </body>
