@@ -7,10 +7,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing Notion env vars" });
     }
 
-    // The two "finished" values exactly as they appear in Notion:
-    const FINISHED_REGULAR = "📘";
-    const FINISHED_ARC = "📘✨ ARC";
-
     let count = 0;
     let hasMore = true;
     let startCursor = undefined;
@@ -19,16 +15,10 @@ export default async function handler(req, res) {
       const body = {
         page_size: 100,
         filter: {
-          or: [
-            {
-              property: "Status",
-              rich_text: { equals: FINISHED_REGULAR }
-            },
-            {
-              property: "Status",
-              rich_text: { equals: FINISHED_ARC }
-            }
-          ]
+          property: "Status", // must match your Notion property name exactly
+          rich_text: {
+            starts_with: "📘" // counts 📘 and 📘✨ ARC (and any future 📘 variants)
+          }
         }
       };
 
@@ -48,19 +38,14 @@ export default async function handler(req, res) {
       );
 
       const data = await resp.json();
-      if (!resp.ok) {
-        return res.status(resp.status).json({
-          error: "Notion API error",
-          details: data
-        });
-      }
+      if (!resp.ok) return res.status(resp.status).json(data);
 
       count += data.results?.length || 0;
       hasMore = data.has_more;
       startCursor = data.next_cursor;
     }
 
-    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
     return res.status(200).json({ count });
   } catch (err) {
     return res.status(500).json({ error: String(err) });
