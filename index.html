@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Total Books</title>
+  <title>Total Books Read</title>
   <style>
     body {
       margin: 0;
@@ -14,51 +14,31 @@
     }
 
     .panel {
-  width: 200px;
-  height: 250px;
-  background: #F4E6D8;
-  border-radius: 28px;
-  border: 1px solid #E6D3C3;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.05);
-  gap: 10px;
-  padding: 10px;
-  box-sizing: border-box;
+      width: 200px;
+      height: 220px; /* adjust if you want taller */
 
-  /* important for the star overlay */
-  position: relative;
-  overflow: hidden;
-}
+      /* Cozy beige + starfield baked into background */
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,0.85) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 72% 18%, rgba(255,255,255,0.70) 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 55%, rgba(255,255,255,0.62) 0 0.9px, transparent 2px),
+        radial-gradient(circle at 28% 68%, rgba(255,255,255,0.66) 0 1px, transparent 2.1px),
+        radial-gradient(circle at 55% 78%, rgba(255,255,255,0.58) 0 0.8px, transparent 1.9px),
+        linear-gradient(#F4E6D8, #F4E6D8);
 
-/* Make sure the number stays above the stars */
-.number, .hint {
-  position: relative;
-  z-index: 2;
-}
+      border-radius: 28px;
+      border: 1px solid #E6D3C3;
 
-/* Star overlay */
-.panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.35; /* adjust 0.2–0.5 */
-  background:
-    radial-gradient(circle at 18% 22%, rgba(255,255,255,0.85) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 72% 18%, rgba(255,255,255,0.70) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 82% 55%, rgba(255,255,255,0.55) 0 0.9px, transparent 1.6px),
-    radial-gradient(circle at 28% 68%, rgba(255,255,255,0.60) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 55% 78%, rgba(255,255,255,0.50) 0 0.8px, transparent 1.5px),
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
 
-    /* warm “ink” stars (super subtle) */
-    radial-gradient(circle at 40% 30%, rgba(120,80,40,0.14) 0 0.9px, transparent 1.6px),
-    radial-gradient(circle at 65% 60%, rgba(120,80,40,0.10) 0 0.8px, transparent 1.5px),
-    radial-gradient(circle at 22% 48%, rgba(120,80,40,0.08) 0 0.7px, transparent 1.4px);
-}
+      box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+      gap: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
 
     .number {
       font-family: Georgia, serif;
@@ -66,6 +46,7 @@
       color: #C29563;
       font-weight: 700;
       line-height: 1;
+      user-select: none;
     }
 
     .hint {
@@ -74,7 +55,9 @@
       color: rgba(60, 40, 20, 0.55);
       text-align: center;
       line-height: 1.2;
-      display: none; /* only show if error */
+      display: none; /* only shows on error */
+      padding: 0 6px;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -87,13 +70,15 @@
 
   <script>
     async function getLiveCount() {
-      // cache-bust so you always see the newest response while debugging
+      // cache-bust while you're testing so Notion doesn't show an old number
       const res = await fetch("/api/count?t=" + Date.now());
+      const text = await res.text();
+
       if (!res.ok) {
-        const text = await res.text();
         throw new Error(`API ${res.status}: ${text}`);
       }
-      const data = await res.json();
+
+      const data = JSON.parse(text);
       return data.count ?? 0;
     }
 
@@ -102,23 +87,22 @@
       const hint = document.getElementById("hint");
 
       try {
-        const totalBooks = await getLiveCount();
+        const total = await getLiveCount();
 
         let current = 0;
-        const step = Math.max(1, Math.ceil(totalBooks / 60));
+        const step = Math.max(1, Math.ceil(total / 60));
 
         const interval = setInterval(() => {
           current += step;
-          if (current >= totalBooks) {
-            current = totalBooks;
+          if (current >= total) {
+            current = total;
             clearInterval(interval);
           }
           counter.textContent = current;
         }, 30);
       } catch (err) {
-        // show a tiny debug note on the card
         hint.style.display = "block";
-        hint.textContent = String(err).slice(0, 180);
+        hint.textContent = String(err).slice(0, 220);
         console.error(err);
       }
     }
