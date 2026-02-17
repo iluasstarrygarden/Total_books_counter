@@ -15,15 +15,21 @@
 
     .panel {
       width: 200px;
-      height: 220px; /* adjust if you want taller */
+      height: 220px;
 
-      /* Cozy beige + starfield baked into background */
+      /* Cozy beige base + larger, warmer background stars */
       background:
-        radial-gradient(circle at 18% 22%, rgba(255,255,255,0.85) 0 1px, transparent 1.8px),
-        radial-gradient(circle at 72% 18%, rgba(255,255,255,0.70) 0 1px, transparent 2px),
-        radial-gradient(circle at 82% 55%, rgba(255,255,255,0.62) 0 0.9px, transparent 2px),
-        radial-gradient(circle at 28% 68%, rgba(255,255,255,0.66) 0 1px, transparent 2.1px),
-        radial-gradient(circle at 55% 78%, rgba(255,255,255,0.58) 0 0.8px, transparent 1.9px),
+        radial-gradient(circle at 18% 22%, rgba(255, 242, 214, 0.95) 0 2.4px, transparent 3.2px),
+        radial-gradient(circle at 72% 18%, rgba(255, 233, 196, 0.85) 0 2.2px, transparent 3.1px),
+        radial-gradient(circle at 82% 55%, rgba(255, 245, 225, 0.80) 0 2.0px, transparent 3.0px),
+        radial-gradient(circle at 28% 68%, rgba(255, 237, 205, 0.82) 0 2.3px, transparent 3.2px),
+        radial-gradient(circle at 55% 78%, rgba(255, 248, 230, 0.75) 0 1.9px, transparent 2.9px),
+
+        /* subtle warm “ink” specks */
+        radial-gradient(circle at 40% 30%, rgba(173, 118, 70, 0.18) 0 1.6px, transparent 2.8px),
+        radial-gradient(circle at 65% 60%, rgba(173, 118, 70, 0.12) 0 1.3px, transparent 2.6px),
+        radial-gradient(circle at 22% 48%, rgba(173, 118, 70, 0.10) 0 1.2px, transparent 2.5px),
+
         linear-gradient(#F4E6D8, #F4E6D8);
 
       border-radius: 28px;
@@ -35,9 +41,55 @@
       align-items: center;
 
       box-shadow: 0 12px 30px rgba(0,0,0,0.05);
-      gap: 10px;
       padding: 10px;
       box-sizing: border-box;
+
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Twinkling stars layer (HTML elements) */
+    .stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .star {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 244, 214, 1) 0%, rgba(255, 244, 214, 0.0) 70%);
+      opacity: 0.7;
+      filter: drop-shadow(0 0 6px rgba(255, 220, 170, 0.35));
+      animation: twinkle var(--dur) ease-in-out infinite;
+      animation-delay: var(--delay);
+      transform: translateZ(0);
+    }
+
+    /* A warmer “gold” variant for a few stars */
+    .star.gold {
+      background: radial-gradient(circle, rgba(255, 214, 140, 1) 0%, rgba(255, 214, 140, 0.0) 72%);
+      filter: drop-shadow(0 0 7px rgba(255, 190, 120, 0.35));
+      opacity: 0.65;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.20; transform: scale(0.9); }
+      40%      { opacity: 0.85; transform: scale(1.05); }
+      60%      { opacity: 0.55; transform: scale(0.98); }
+    }
+
+    .content {
+      position: relative;
+      z-index: 2; /* above stars */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     .number {
@@ -64,20 +116,30 @@
 
 <body>
   <div class="panel">
-    <div class="number" id="counter">0</div>
-    <div class="hint" id="hint"></div>
+    <!-- Twinkle layer -->
+    <div class="stars" aria-hidden="true">
+      <!-- sizes are in px; tweak to taste -->
+      <span class="star" style="left:14%; top:18%; --size:10px; --dur:2.8s; --delay:-0.6s;"></span>
+      <span class="star gold" style="left:72%; top:14%; --size:12px; --dur:3.6s; --delay:-1.2s;"></span>
+      <span class="star" style="left:84%; top:52%; --size:9px; --dur:2.4s; --delay:-0.2s;"></span>
+      <span class="star" style="left:24%; top:68%; --size:11px; --dur:3.2s; --delay:-1.8s;"></span>
+      <span class="star gold" style="left:58%; top:78%; --size:10px; --dur:4.0s; --delay:-0.9s;"></span>
+      <span class="star" style="left:40%; top:35%; --size:8px; --dur:2.1s; --delay:-1.5s;"></span>
+      <span class="star gold" style="left:48%; top:58%; --size:7px; --dur:2.9s; --delay:-0.4s;"></span>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="number" id="counter">0</div>
+      <div class="hint" id="hint"></div>
+    </div>
   </div>
 
   <script>
     async function getLiveCount() {
-      // cache-bust while you're testing so Notion doesn't show an old number
       const res = await fetch("/api/count?t=" + Date.now());
       const text = await res.text();
-
-      if (!res.ok) {
-        throw new Error(`API ${res.status}: ${text}`);
-      }
-
+      if (!res.ok) throw new Error(`API ${res.status}: ${text}`);
       const data = JSON.parse(text);
       return data.count ?? 0;
     }
